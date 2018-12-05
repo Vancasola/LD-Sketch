@@ -152,7 +152,8 @@ void dyn_tbl_update(dyn_tbl_t* dyn_tbl, unsigned char* key_str, int val) {
 }
 
 dyn_tbl_t* dyn_tbl_init(unsigned int length, int lgn, long long T) {
-    dyn_tbl_t* ret = (dyn_tbl_t*)calloc(1, sizeof(dyn_tbl_t));
+    //dyn_tbl_t* ret = (dyn_tbl_t*)calloc(1, sizeof(dyn_tbl_t));
+    dyn_tbl_t* ret = new(dyn_tbl_t);
     ret->lgn = lgn;
     ret->max_len = length;
     ret->decrement = 0;

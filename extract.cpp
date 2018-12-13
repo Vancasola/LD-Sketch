@@ -14,7 +14,7 @@ string Extract(string &str)
 	auto it = str.cbegin();
 	regex_search(it, str.cend(), sm, regex("(2(5[0-5]{1}|[0-4]\\d{1})|[0-1]?\\d{1,2})(\\.(2(5[0-5]{1}|[0-4]\\d{1})|[0-1]?\\d{1,2})){3}"));
 	src = sm.prefix().str();
-	
+
 	result += sm.str();
 	result += " ";
 	//regex for src ipv4 match
@@ -27,7 +27,7 @@ string Extract(string &str)
 	it = str.cbegin();
 	regex_search(it, str.cend(), sm, regex("length [0-9]+"));
 	dst = sm.prefix().str();
-	
+
 	result += sm.str();
 	return result;
 }
@@ -45,7 +45,7 @@ unsigned long long Convert_IP(string &str)
 	{
 		if (str[i] == 'l')break;
 		if (str[i] == ' ')
-		{	
+		{
 			result = result << 8;
 			result += t;
 			t = 0;
@@ -63,10 +63,10 @@ unsigned long long Convert_IP(string &str)
 			}
 			t *= 10;
 			t += str[i] - '0';
-	     }
+		}
 		else
 		{
-			
+
 			if (first_out)
 			{
 				result += t;
@@ -79,9 +79,10 @@ unsigned long long Convert_IP(string &str)
 			result += t;
 			first_in = 1;
 			t = 0;
-			
+
 		}
 	}
+	
 	return result;
 }
 /*
@@ -89,7 +90,7 @@ unsigned long long Convert_IP(string &str)
 */
 long long Convert_length(string &str)
 {
-	int i=0,pos = 0,str_len=str.size();
+	int i = 0, pos = 0, str_len = str.size();
 	int first = 1;
 	long long value = 0ll;
 	string length_str = "";
@@ -103,8 +104,8 @@ long long Convert_length(string &str)
 		}
 		else
 		{
-		value *= 10;
-		value += str[i] - '0';
+			value *= 10;
+			value += str[i] - '0';
 		}
 	}
 	return value;

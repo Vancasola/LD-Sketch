@@ -4,43 +4,44 @@
  */
 #include "dyn_tbl.hpp"
 
-/// Sketch structure
+
+ /// Sketch structure
 typedef struct LDSketch_s {
 
-    /// bucket array
+	/// bucket array
 	dyn_tbl_t** tbl;
 
-    /*********************************************************
-     * read only variables
-     ********************************************************/
-    /// # of rows
+	/*********************************************************
+	 * read only variables
+	 ********************************************************/
+	 /// # of rows
 	int h;
 
-    /// # of buckets per row
+	/// # of buckets per row
 	int w;
 
-    /// init # of counters in each tbl (will grow later)
-    int l;
+	/// init # of counters in each tbl (will grow later)
+	int l;
 
-    /// total number of buckets
-    // int size;
+	/// total number of buckets
+	// int size;
 
-    /// length of keys (in bits)
+	/// length of keys (in bits)
 	int lgn;
 
-    /// detection threshold
-    double thresh_abs;
+	/// detection threshold
+	double thresh_abs;
 
-    /// id of detectors (detectors have different hash functions)
-    unsigned int tbl_id;
+	/// id of detectors (detectors have different hash functions)
+	unsigned int tbl_id;
 } LDSketch_t;
 
 /*************************************************************
  * create and destroy
  ************************************************************/
 
-/// init sketch
-// @return the pointer to the created sketch
+ /// init sketch
+ // @return the pointer to the created sketch
 LDSketch_t* LDSketch_init(int w, int h, int l, int lgn, long long thresh_abs, unsigned int tbl_id);
 
 /// free scketch
@@ -50,9 +51,9 @@ void LDSketch_destroy(LDSketch_t* LDSketch);
  * read functions
  ************************************************************/
 
-/// print out the sketch to file
-// @param sk target sketch
-// @param output name of output file
+ /// print out the sketch to file
+ // @param sk target sketch
+ // @param output name of output file
 void LDSketch_write_plaintext(LDSketch_t* sk, const char* output);
 
 /// identify heavy keys
@@ -79,13 +80,13 @@ long long LDSketch_up_estimate(LDSketch_t* sk, unsigned char* key);
  * write functions
  ************************************************************/
 
-/**
- * update the sketch with an data item
- * @param sk the target sketch
- * @param key key of the data item
- * @param val value of the data item
- * @param T expansion parameter
- */
+ /**
+  * update the sketch with an data item
+  * @param sk the target sketch
+  * @param key key of the data item
+  * @param val value of the data item
+  * @param T expansion parameter
+  */
 void LDSketch_update(LDSketch_t* sk, unsigned char* key, long long val);
 
 /**
@@ -101,3 +102,6 @@ void LDSketch_copy(LDSketch_t* from, LDSketch_t* to);
  * @param output filename of the output file
  */
 void LDSketch_reset(LDSketch_t* sk);
+
+unsigned int LDSketch_find(LDSketch_t* tbl, const unsigned char* key, int start_bit,
+	int end_bit, int row_no);

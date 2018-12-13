@@ -1,21 +1,26 @@
-/*1. è¾“å‡ºsketchçš„å†…å®¹ ok
-	2. æ›´æ–°sketchï¼Œæ’å…¥keyå€¼ ok
-	3. è¾“å‡ºdyn_tblçš„å†…å®¹ï¼Œè¯æ˜ŽæˆåŠŸæ’å…¥key ok
-	4. æ’å…¥ä¸€ä¸ªkeyï¼Œå…¶valueè¶…è¿‡é˜ˆå€¼ok
-	5. æˆåŠŸæŠ¥å‡ºè¶…è¿‡é˜ˆå€¼çš„key ok
-	6. ä¸æ–­æ’å…¥keyï¼Œè¾“å‡ºlï¼Œè¯æ˜Žå…¶lä¼šåŠ¨æ€å˜åŒ–ok
-	7. è¾“å‡ºkeyå€¼çš„ä¸Šç•Œå’Œä¸‹ç•Œok
-	8. ä½¿ç”¨pcapæˆåŠŸæŠ“åŒ…ok
-	9. åˆ†æžåŒ…çš„å½¢å¼ï¼Œè€ƒè™‘å¯¼å…¥åˆ°sketchçš„æ–¹æ³•
-	10. å°†keyå€¼å­˜å…¥sketch
-	11. è€ƒè™‘ä¸€è¾¹èŽ·å–æµé‡ï¼Œä¸€è¾¹æ›´æ–°çš„æ–¹æ³•ï¼ˆæ­»å¾ªçŽ¯æ›´æ–°å€¼ï¼‰
-	12. ä½¿ç”¨pacpæŠ“åŒ…ï¼Œsketchå­˜å…¥
-	13. çœŸå®žçŽ¯å¢ƒä¸‹ï¼Œè®¾å®šé˜ˆå€¼ï¼ŒæŠ¥å‡ºheavy hitter 
-	14. çœŸå®žçŽ¯å¢ƒä¸‹ï¼ŒæŸ¥çœ‹lçš„å˜åŒ–æƒ…å†µ
-	*/
+/*1. Êä³ösketchµÄÄÚÈÝ ok
+	2. ¸üÐÂsketch£¬²åÈëkeyÖµ ok
+	3. Êä³ödyn_tblµÄÄÚÈÝ£¬Ö¤Ã÷³É¹¦²åÈëkey ok
+	4. ²åÈëÒ»¸ökey£¬Æävalue³¬¹ýãÐÖµok
+	5. ³É¹¦±¨³ö³¬¹ýãÐÖµµÄkey ok
+	6. ²»¶Ï²åÈëkey£¬Êä³öl£¬Ö¤Ã÷Æäl»á¶¯Ì¬±ä»¯ok
+	7. Êä³ökeyÖµµÄÉÏ½çºÍÏÂ½çok
+	8. Ê¹ÓÃpcap³É¹¦×¥°üok
+	9. ·ÖÎö°üµÄÐÎÊ½£¬¿¼ÂÇµ¼Èëµ½sketchµÄ·½·¨
+	10. ½«keyÖµ´æÈësketch
+	11. ¿¼ÂÇÒ»±ß»ñÈ¡Á÷Á¿£¬Ò»±ß¸üÐÂµÄ·½·¨£¨ËÀÑ­»·¸üÐÂÖµ£©
+	12. Ê¹ÓÃpacp×¥°ü£¬sketch´æÈë
+	13. ÕæÊµ»·¾³ÏÂ£¬Éè¶¨ãÐÖµ£¬±¨³öheavy hitter
+	14. ÕæÊµ»·¾³ÏÂ£¬²é¿´lµÄ±ä»¯Çé¿ö
+*/
 #include "LDSketch.hpp"
-char* ip2a(uint32_t ip, char* addr);
+#include "extract.h"
+#include "hash.h"
+using namespace std;
 //@ip:include src and dst ip, 64 bit
+
+#define heavy_key_number 5
+#define key_number 5
 void Print_Ip(unsigned long long* ip)
 {
 	//unsigned long long * iptemp = new unsigned long long;
@@ -23,160 +28,79 @@ void Print_Ip(unsigned long long* ip)
 	unsigned int * dst = new unsigned int;
 	char * ipk = new  char[5];
 	ipk[4] = '\0';
-	//*ip = (0x0100a8c00200a8c0);//æºç›®çš„ipï¼Œé€†åº
-	*dst = (0xffffffff)&(*ip);//ç›®çš„ip
-	*src = (*ip) >> 32;//æºip
+	//*ip = (0x0100a8c00200a8c0);//Ô´Ä¿µÄip£¬ÄæÐò
+	*dst = (0xffffffff)&(*ip);//Ä¿µÄip
+	*src = (*ip) >> 32;//Ô´ip
 
 	printf("src==%s ", ip2a(*src, ipk));
 	printf("dst==%s\n", ip2a(*dst, ipk));
 	return;
 }
-#define heavy_key_number 5
-#define key_number 5
-unsigned int LDSketch_find(LDSketch_t* tbl, const unsigned char* key, int start_bit,
-	int end_bit, int row_no);
 int main(int argc, char** argv) {
-	LDSketch_t* lds = LDSketch_init(10, 4, 1, 64, 1024*1024, 0);
-	//dyn_tbl_key_t key;
-	
-	//unsigned char * key = new unsigned char[key_number*4+1];
-	//unsigned char * tempkey = new unsigned char[5];
-	//tempkey[4] = '\0';
-	//unsigned char * ptr = key;
+	LDSketch_t* lds = LDSketch_init(10000, 4, 1, 64, 1024 * 1024, 0);
 	char * ipk = new  char[5];
 	ipk[4] = '\0';
-	printf("%s\n", ip2a(0x0100a8c0,ipk));
-	
-	/*for (int i = 0; i < 4*key_number; i+=4)
-	{
-		key[i] = (0xc0);
-		key[i+1] = (0xa8);
-		key[i + 2] = (0x00);
-		key[i + 3] = (0x00) + i/4+1;
-		printf("\nkey==%0xd\n", );
-		tempkey[0] = key[i];
-		tempkey[1] = key[i+1];
-		tempkey[2] = key[i+2];
-		tempkey[3] = key[i+3];
-		LDSketch_update(lds, tempkey, 1024 * 1024);
-	}*/
-	//ip2a(0x0100a8c0, ipk);
+	//printf("%s\n", ip2a(0x0100a8c0,ipk));
+
 	unsigned char * key = new unsigned char[9];
-	unsigned long long * iptemp = new unsigned long long ;
+	unsigned long long * iptemp = new unsigned long long;
 	unsigned int * src = new unsigned int;
 	unsigned int * dst = new unsigned int;
-	*iptemp = (0x0100a8c00200a8c0);//æºç›®çš„ipï¼Œé€†åº
 
+	/*
+	*iptemp = (0x0100a8c00200a8c0);//Ô´Ä¿µÄip£¬ÄæÐò
 	Print_Ip(iptemp);
-	/**dst = (0xffffffff)&(*iptemp);//ç›®çš„ip
-	*src = (*iptemp) >> 32;//æºip
-	printf("src==%llx\n", *dst);
-	printf("src==%s\n", ip2a(*src,ipk));
-	*iptemp = (*iptemp) >> 32;
-	printf("dst==%s\n\n\n\n\n", ip2a(*dst, ipk));
-	*key = (0x0100a8c00200a8c0);*/
-	
-	
-	//printf("%lx", *key);
+	*/
+	string str = "06:55:46.304503 ARP, Request who-has 192.168.198.2 tell 192.168.198.131, length 46";
+	string result = "";
+	result = Extract(str);
+	//	cout <<  result << endl;
+	cout << "string == " << str << endl;
+	printf("convert to hex:%llxh\n", Convert_IP(result));
+	printf("the length is :%d\n\n\n", Convert_length(str));
 	unsigned int ipi = *(key); //& 0xffffffff;
-	//printf("%x", ipi);
-							   //printf("src==%s ",ip2a(ipi, ipk));
-	//ipi = ipi << 32;
-	//printf("%x", ipi);
-	//printf("dst==%s ",ip2a(ipi,ipk ));
-		*iptemp = (0x0100a8c00200a8c0);
-		key = (unsigned char *)iptemp;
-		LDSketch_update(lds, key, 1024 * 1024);//æ’å…¥keyå€¼
-		*iptemp = (0x0100a8c00300a8c0);
-		key = (unsigned char *)iptemp;
-		LDSketch_update(lds, key, 1024 * 1024);//æ’å…¥keyå€¼
-		*iptemp = (0x0100a8c00400a8c0);
-		key = (unsigned char *)iptemp;
-		LDSketch_update(lds, key, 1024 * 1024);//æ’å…¥keyå€¼
-		*iptemp = (0x0100a8c00500a8c0);
-		key = (unsigned char *)iptemp;
-		LDSketch_update(lds, key, 1024 * 1024);//æ’å…¥keyå€¼
-		*iptemp = (0x0100a8c00600a8c0);
-		key = (unsigned char *)iptemp;
-		LDSketch_update(lds, key, 1024 * 1024);//æ’å…¥keyå€¼
-		*iptemp = (0x0100a8c00700a8c0);
-		key = (unsigned char *)iptemp;
-		LDSketch_update(lds, key, 1024 * 1024);//æ’å…¥keyå€¼
-		/*key = (unsigned char *)"baaaaaaa";
-		LDSketch_update(lds, key, 1024 * 1024);//æ’å…¥keyå€¼
-		key = (unsigned char *)"caaaaaaa";
-		LDSketch_update(lds, key, 1024 * 1024);//æ’å…¥keyå€¼
-		key = (unsigned char *)"daaaaaaa";
-		LDSketch_update(lds, key, 1024 * 1024);//æ’å…¥keyå€¼
-		key = (unsigned char *)"eaaaaaaa";
-		LDSketch_update(lds, key, 1024 * 1024);//æ’å…¥keyå€¼
-		key = (unsigned char *)"faaaaaaa";
-		LDSketch_update(lds, key, 1024 * 1024);//æ’å…¥keyå€¼
-		*/
-	/*long long up ;ä¸Šç•Œä¸‹ç•Œ
-	long long low;
-	for (int i = 0; i < 6; i++)
-	{
-		long long up = LDSketch_up_estimate(lds, key[i]);
-		long long low = LDSketch_low_estimate(lds, key[i]);
-		printf("up==%lld low==%lld\n", up, low);
-	}*/
+	//*iptemp = (0x0100a8c00200a8c0);
+	*iptemp = Convert_IP(result);
 
-	//long long re = LDSketch_up_estimate(lds, key[0]);
+	key = (unsigned char *)iptemp;
+	
+	//LDSketch_update(lds, key, 1024 * 1024);//²åÈëkeyÖµ
+	printf("!");
+	LDSketch_update(lds, key, 1024*1024);//²åÈëkeyÖµ
+	
 	long long value = 0ll;
-	long long *pvalue = new long long [10];
-	//long long *vals = new long long[6];
-	//for(int i=0;i<6;++i)vals[i]=0;
-	int  num_key = 0 ;
-	unsigned char* rekey = new unsigned char[6*8];
+	long long *pvalue = new long long[10];
+	int  num_key = 0;
+	unsigned char* rekey = new unsigned char[6 * 8];
+	//LDSketch_get_heavy_keys(lds, 1024 * 1024, rekey, pvalue, &num_key);
 
 	LDSketch_get_heavy_keys(lds,1024*1024, rekey, pvalue, &num_key);
+	
+
+	/*
+	ouput the heavy key's results
 	printf("%d\n", num_key);
 	unsigned char *ptr_key = rekey;
 	Print_Ip(((unsigned long long *)rekey));
-	/*for (int i = 0; i < 8 * num_key; )
-	{
-		//if (rekey[i] != NULL)
-			printf("%c", rekey[i]);
-		i++;
-		if (i % 8 == 0)printf("\n");
-	}*/
-	//rekey[num_key * 4] = '\0';
-	char result_key[5];
-	result_key[4] = '\0';
-	unsigned int ip;
-	
-	/*for (int i = 0; i < num_key; i+=4)
-	{
-		result_key[i]= rekey[i];
-		result_key[i+1] = rekey[i+1];
-		result_key[i+2] = rekey[i+2];
-		result_key[i+3] = rekey[i+3];
-		ip = (unsigned int)result_key;
-		printf("%s", ip2a(ip,result_key));
-		//ptr = (int*)result_key;
-		
-	}*/
+	*/
+
+
+	//ouput the heavy hey
 	unsigned char * ptr_rekey = rekey;
-	for (int i = 0; i < 6; i++)
+	printf("*ptr_rekey==%llx\n", *(unsigned long long *)ptr_rekey);
+	for (int i = 0; i < num_key; i++)
 	{
 		printf("key == ");
 		Print_Ip(((unsigned long long *)ptr_rekey));
 		printf("value == %lld\n", pvalue[i]);
 		ptr_rekey += 8;
 	}
-	/*for (int i = 0; i < 5; i++)
-	{
-		printf("key == %s value == %lld\n",rekey,pvalue[i]);
-	}*/
-	//printf("num_key == %d\n", num_key);
-	//printf("value == %lld\n ", value);
-	//printf("%s", rekey);
-	//LDSketch_update(lds, key2, 64);//æ’å…¥keyå€¼
-	LDSketch_write_plaintext(lds, "output.txt");//è¾“å‡ºsketchçš„å†…å®¹
-	dyn_tbl_print(lds->tbl[0], "dyns.txt");
+
+	//output
+	LDSketch_write_plaintext(lds, "output.txt");//Êä³ösketchµÄÄÚÈÝ
+	//dyn_tbl_print(lds->tbl[0], "dyns.txt");
+
 	LDSketch_destroy(lds);
 	system("PAUSE");
-	
 	return 0;
 }

@@ -12,9 +12,9 @@
 #include "hash.h"
 #include "LDSketch.hpp"
 
-/*
- * calloc with error message
- */
+ /*
+  * calloc with error message
+  */
 static void* safe_calloc(size_t nmemb, size_t size, const char* name) {
 	void* ret;
 	ret = calloc(nmemb, size);
@@ -43,44 +43,44 @@ static void* safe_calloc(size_t nmemb, size_t size, const char* name) {
 /*
  * mangle
  */
-/*
-static void mangle(const unsigned char* key, unsigned char* ret_key,
-		int nbytes) {
-	unsigned long long new_key = 0;
-	int i;
-	for (i=0; i<nbytes; ++i) {
-		new_key |= key[nbytes-i-1] << (i * 8);
-	}
-	new_key = (new_key * 3054961753) & (0xffffffff);
-	for (i=0; i<nbytes; ++i) {
-		ret_key[i] = (new_key >> (i * 8)) & 0xff;
-	}
-}
-*/
-
-/*
- * unmangle
- */                                                           
-/*
-static void unmangle(const unsigned char* key, unsigned char* ret_key,       
-		int nbytes) {                                         
-	// 10001^-1 mod 2^32 = 3472992753                         
-	// 1001^-1 mod 2^32 = 3054961753                          
-	unsigned long long new_key = 0;                           
-	int i;                                                    
-	for (i=0; i<nbytes; ++i) {                                
-		new_key |= key[i] << (i * 8);                         
-	}                                                         
-	new_key = (new_key * 1001) & (0xffffffff);                
-	for (i=0; i<nbytes; ++i) {                                
-		ret_key[nbytes-i-1] = (new_key >> (i * 8)) & 0xff;    
-	}                                                         
-}
-*/
-
-/*
- * Initialize the hh table
+ /*
+ static void mangle(const unsigned char* key, unsigned char* ret_key,
+		 int nbytes) {
+	 unsigned long long new_key = 0;
+	 int i;
+	 for (i=0; i<nbytes; ++i) {
+		 new_key |= key[nbytes-i-1] << (i * 8);
+	 }
+	 new_key = (new_key * 3054961753) & (0xffffffff);
+	 for (i=0; i<nbytes; ++i) {
+		 ret_key[i] = (new_key >> (i * 8)) & 0xff;
+	 }
+ }
  */
+
+ /*
+  * unmangle
+  */
+  /*
+  static void unmangle(const unsigned char* key, unsigned char* ret_key,
+		  int nbytes) {
+	  // 10001^-1 mod 2^32 = 3472992753
+	  // 1001^-1 mod 2^32 = 3054961753
+	  unsigned long long new_key = 0;
+	  int i;
+	  for (i=0; i<nbytes; ++i) {
+		  new_key |= key[i] << (i * 8);
+	  }
+	  new_key = (new_key * 1001) & (0xffffffff);
+	  for (i=0; i<nbytes; ++i) {
+		  ret_key[nbytes-i-1] = (new_key >> (i * 8)) & 0xff;
+	  }
+  }
+  */
+
+  /*
+   * Initialize the hh table
+   */
 LDSketch_t* LDSketch_init(int w, int h, int l, int lgn, long long thresh_abs, unsigned int tbl_id) {
 	LDSketch_t* LDSketch;
 
@@ -93,19 +93,19 @@ LDSketch_t* LDSketch_init(int w, int h, int l, int lgn, long long thresh_abs, un
 	// safe calloc
 	LDSketch = (LDSketch_t*)safe_calloc(1, sizeof(LDSketch_t), std::string("LDSketch").c_str());
 	LDSketch->tbl = (dyn_tbl_t**)safe_calloc(h * w, sizeof(long long), std::string("tbl->tbl").c_str());
-    for (int i=0; i<h*w; ++i) {
-        LDSketch->tbl[i] = dyn_tbl_init(l, lgn, thresh_abs);
-    }
+	for (int i = 0; i < h*w; ++i) {
+		LDSketch->tbl[i] = dyn_tbl_init(l, lgn, thresh_abs);
+	}
 
 	// set parameters
-    LDSketch->h = h;
+	LDSketch->h = h;
 	LDSketch->w = w;
-    LDSketch->l = l;
-    // LDSketch->size = h * w;
+	LDSketch->l = l;
+	// LDSketch->size = h * w;
 	LDSketch->lgn = lgn;
-    LDSketch->tbl_id = tbl_id;
-    LDSketch->thresh_abs = thresh_abs;
-    // LDSketch->total = 0;
+	LDSketch->tbl_id = tbl_id;
+	LDSketch->thresh_abs = thresh_abs;
+	// LDSketch->total = 0;
 
 	// return
 	return LDSketch;
@@ -115,7 +115,7 @@ LDSketch_t* LDSketch_init(int w, int h, int l, int lgn, long long thresh_abs, un
  * Operate - return a random bucket
  */
 unsigned int LDSketch_find(LDSketch_t* tbl, const unsigned char* key, int start_bit,
-		int end_bit, int row_no) {
+	int end_bit, int row_no) {
 	unsigned char key_str[50];		// assume n/8 + 4 <= 50
 	unsigned int oper;
 	char bit;
@@ -128,11 +128,12 @@ unsigned int LDSketch_find(LDSketch_t* tbl, const unsigned char* key, int start_
 	i = start_bit;		// start_bit == 0 in all cases
 	while (i <= end_bit) {
 		if (end_bit - i + 1 >= 8) {
-			key_str[i/8] = key[i/8];	
+			key_str[i / 8] = key[i / 8];
 			i += 8;
-		} else {
-			bit = (key[i/8] & (1 << (8 - ((i%8) + 1)))) > 0 ?  1 : 0;
-			key_str[i/8] |= (bit << (8 - ((i%8) + 1)));
+		}
+		else {
+			bit = (key[i / 8] & (1 << (8 - ((i % 8) + 1)))) > 0 ? 1 : 0;
+			key_str[i / 8] |= (bit << (8 - ((i % 8) + 1)));
 			i++;
 		}
 	}
@@ -141,7 +142,7 @@ unsigned int LDSketch_find(LDSketch_t* tbl, const unsigned char* key, int start_
 	//oper = part_no * tbl->[part_no] + array_no;
 	oper = tbl->h * tbl->tbl_id + row_no;
 	//oper = row_no;
-	memcpy(key_str + tbl->lgn/8, &oper, sizeof(unsigned int));
+	memcpy(key_str + tbl->lgn / 8, &oper, sizeof(unsigned int));
 
 	/*
 	// hash
@@ -154,8 +155,8 @@ unsigned int LDSketch_find(LDSketch_t* tbl, const unsigned char* key, int start_
 	ret_bucket = (ret_bucket % tbl->K);
 	*/
 
-	ret_bucket = AwareHash(key_str, 
-			(unsigned int)(tbl->lgn/8 + sizeof(unsigned int))) % (tbl->w);
+	ret_bucket = AwareHash(key_str,
+		(unsigned int)(tbl->lgn / 8 + sizeof(unsigned int))) % (tbl->w);
 
 	// return
 	return ret_bucket;
@@ -172,12 +173,12 @@ void LDSketch_update(LDSketch_t* sk, unsigned char* key, long long val) {
 	// mangle(key, key_to_add, tbl->n/8);
 
 	// add key/val to table
-	for (j=0; j<sk->h; ++j) {
+	for (j = 0; j < sk->h; ++j) {
 		k = LDSketch_find(sk, key, 0, sk->lgn - 1, j);
 		//tbl->T[j*tbl->w+k] += val;
-		dyn_tbl_update(sk->tbl[j*sk->w+k], key, val);
+		dyn_tbl_update(sk->tbl[j*sk->w + k], key, val);
 	}
-    //tbl->total += val;
+	//tbl->total += val;
 }
 
 /*
@@ -191,10 +192,10 @@ void LDSketch_copy(LDSketch_t* tbl, LDSketch_t* ret_tbl) {
 	}
 
 	//memcpy(ret_tbl->T, tbl->T, tbl->size * sizeof(long long));
-    for (int i=0; i<tbl->h*tbl->w; ++i) {
-        dyn_tbl_copy(tbl->tbl[i], ret_tbl->tbl[i]);
-    }
-    //ret_tbl->total = tbl->total;
+	for (int i = 0; i < tbl->h*tbl->w; ++i) {
+		dyn_tbl_copy(tbl->tbl[i], ret_tbl->tbl[i]);
+	}
+	//ret_tbl->total = tbl->total;
 }
 
 /*
@@ -202,10 +203,10 @@ void LDSketch_copy(LDSketch_t* tbl, LDSketch_t* ret_tbl) {
  */
 void LDSketch_reset(LDSketch_t* LDSketch) {
 	//memset(LDSketch->T, 0, LDSketch->size * sizeof(long long)); 
-    for (int i=0; i<LDSketch->h*LDSketch->w; ++i) {
-        dyn_tbl_reset(LDSketch->tbl[i]);
-    }
-    //LDSketch->total = 0;
+	for (int i = 0; i < LDSketch->h*LDSketch->w; ++i) {
+		dyn_tbl_reset(LDSketch->tbl[i]);
+	}
+	//LDSketch->total = 0;
 }
 
 /*
@@ -213,9 +214,9 @@ void LDSketch_reset(LDSketch_t* LDSketch) {
  */
 void LDSketch_destroy(LDSketch_t* sk) {
 	//free(LDSketch->T);
-    for (int i=0; i<sk->h*sk->w; ++i) {
-        dyn_tbl_destroy(sk->tbl[i]);
-    }
+	for (int i = 0; i < sk->h*sk->w; ++i) {
+		dyn_tbl_destroy(sk->tbl[i]);
+	}
 	free(sk->tbl);
 	free(sk);
 }
@@ -228,7 +229,7 @@ void LDSketch_destroy(LDSketch_t* sk) {
  *
  */
 void LDSketch_write_plaintext(LDSketch_t* sk, const char* outfile) {
-	FILE* fp; 
+	FILE* fp;
 	int i, j;
 
 	// open a file
@@ -238,25 +239,25 @@ void LDSketch_write_plaintext(LDSketch_t* sk, const char* outfile) {
 	}
 
 	// write to a file (including n and bd???)
-    fprintf(fp, "Worker: %u, length of key: %d\n", sk->tbl_id, sk->lgn);
+	fprintf(fp, "Worker: %u, length of key: %d\n", sk->tbl_id, sk->lgn);
 	fprintf(fp, "# of hash row: %d\n", sk->h);
-    fprintf(fp, "# of buckets: %d\n", sk->w);
+	fprintf(fp, "# of buckets: %d\n", sk->w);
 
-    uint64_t key_int = 0x0102030405060708;
-    unsigned char* key = (unsigned char*)&key_int;
-    for (i=0; i<sk->h; ++i) {
-        unsigned int k = LDSketch_find(sk, key, 0, sk->lgn - 1, i);
-        fprintf(fp, "%u ", k);
-    }
-    fprintf(fp, "\n");
+	uint64_t key_int = 0x0102030405060708;
+	unsigned char* key = (unsigned char*)&key_int;
+	for (i = 0; i < sk->h; ++i) {
+		unsigned int k = LDSketch_find(sk, key, 0, sk->lgn - 1, i);
+		fprintf(fp, "%u ", k);
+	}
+	fprintf(fp, "\n");
 
-	for (i=0; i<sk->h; ++i) {
-		for (j=0; j<sk->w; ++j) {
-            //fprintf(fp, "%lld ", tbl->T[tbl->w*i + j]);
-            unsigned int index = sk->w*i + j;
-            fprintf(fp, "%lld %d, ", sk->tbl[index]->total, dyn_tbl_length(sk->tbl[index]));
+	for (i = 0; i < sk->h; ++i) {
+		for (j = 0; j < sk->w; ++j) {
+			//fprintf(fp, "%lld ", tbl->T[tbl->w*i + j]);
+			unsigned int index = sk->w*i + j;
+			fprintf(fp, "%lld %d, ", sk->tbl[index]->total, dyn_tbl_length(sk->tbl[index]));
 		}
-        fprintf(fp, "\n");
+		fprintf(fp, "\n");
 	}
 
 	// close the file
@@ -264,73 +265,73 @@ void LDSketch_write_plaintext(LDSketch_t* sk, const char* outfile) {
 }
 
 void LDSketch_get_heavy_keys(LDSketch_t* sk, long long thresh,
-        unsigned char* keys, long long* vals, int* num_key) {
+	unsigned char* keys, long long* vals, int* num_key) {
 
 
-    int max_array_len = 0;
-    for (int i=0; i<sk->w*sk->h; ++i) {
-        if (sk->tbl[i]->max_value >= thresh) {
-            int len = dyn_tbl_length(sk->tbl[i]);
-            if (len > max_array_len) {
-                max_array_len = len;
-            }
-        }
-    }
+	int max_array_len = 0;
+	for (int i = 0; i < sk->w*sk->h; ++i) {
+		if (sk->tbl[i]->max_value >= thresh) {
+			int len = dyn_tbl_length(sk->tbl[i]);
+			if (len > max_array_len) {
+				max_array_len = len;
+			}
+		}
+	}
 
-    unsigned char* tmp_keys = (unsigned char*)safe_calloc(max_array_len, sk->lgn/8, std::string("tmp heavy keys").c_str());
-    int tmp_n, n = 0;
+	unsigned char* tmp_keys = (unsigned char*)safe_calloc(max_array_len, sk->lgn / 8, std::string("tmp heavy keys").c_str());
+	int tmp_n = 0, n = 0;
 
-    for (int i=0; i<sk->w*sk->h; ++i) {
-        if (sk->tbl[i]->max_value >= thresh) {
-            dyn_tbl_get_heavy_key(sk->tbl[i], thresh, tmp_keys, &tmp_n);
-            for (int j=0; j<tmp_n; j++) {
-                // deduplicate
-                int k = 0;
-                for (; k<n; k++) {
-                    if (memcmp(tmp_keys+j*sk->lgn/8, keys+k*sk->lgn/8, sk->lgn/8)==0) {
-                        break;
-                    }
-                }
-                if (k < n) {
-                    break;
-                }
+	for (int i = 0; i < sk->w*sk->h; ++i) {
+		if (sk->tbl[i]->max_value >= thresh) {
+			dyn_tbl_get_heavy_key(sk->tbl[i], thresh, tmp_keys, &tmp_n);
+			for (int j = 0; j < tmp_n; j++) {
+				// deduplicate
+				int k = 0;
+				for (; k < n; k++) {
+					if (memcmp(tmp_keys + j * sk->lgn / 8, keys + k * sk->lgn / 8, sk->lgn / 8) == 0) {
+						break;
+					}
+				}
+				if (k < n) {
+					break;
+				}
 
-                long long v = LDSketch_up_estimate(sk, tmp_keys+j*sk->lgn/8);
-                if (v >= thresh) {
-                    memcpy(keys+n*sk->lgn/8, tmp_keys+j*sk->lgn/8, sk->lgn/8);
-                    vals[n] = v;
-                    n++;
-                }
-            }
-        }
-    }
+				long long v = LDSketch_up_estimate(sk, tmp_keys + j * sk->lgn / 8);
+				if (v >= thresh) {
+					memcpy(keys + n * sk->lgn / 8, tmp_keys + j * sk->lgn / 8, sk->lgn / 8);
+					vals[n] = v;
+					n++;
+				}
+			}
+		}
+	}
 
-    *num_key = n;
+	*num_key = n;
 }
 
 long long LDSketch_low_estimate(LDSketch_t* sk, unsigned char* key) {
-    long long ret = 0;
-    for (int i=0; i<sk->h; ++i) {
+	long long ret = 0;
+	for (int i = 0; i < sk->h; ++i) {
 		int k = LDSketch_find(sk, key, 0, sk->lgn - 1, i);
-        int index = i*sk->w+k;
-        ret = MAX(ret, dyn_tbl_low_estimate(sk->tbl[index], key));
-    }
-    return ret;
-} 
+		int index = i * sk->w + k;
+		ret = MAX(ret, dyn_tbl_low_estimate(sk->tbl[index], key));
+	}
+	return ret;
+}
 
 long long LDSketch_up_estimate(LDSketch_t* sk, unsigned char* key) {
 	int k = LDSketch_find(sk, key, 0, sk->lgn - 1, 0);
-    long long ret = dyn_tbl_up_estimate(sk->tbl[k], key);
-    for (int i=1; i<sk->h; ++i) {
+	long long ret = dyn_tbl_up_estimate(sk->tbl[k], key);
+	for (int i = 1; i < sk->h; ++i) {
 		k = LDSketch_find(sk, key, 0, sk->lgn - 1, i);
-        int index = i*sk->w+k;
-        ret = MIN(ret, dyn_tbl_up_estimate(sk->tbl[index], key));
-    }
-    return ret;
-} 
+		int index = i * sk->w + k;
+		ret = MIN(ret, dyn_tbl_up_estimate(sk->tbl[index], key));
+	}
+	return ret;
+}
 
 /*
 unsigned int LDSketch_find_cand(LDSketch_t* sk, LDSketch_t* sk_old, double thresh, unsigned char** cand_list, unsigned int MAX_CAND) {
-    std::set<dyn_tbl_key_s> ret;
+	std::set<dyn_tbl_key_s> ret;
 }
 */

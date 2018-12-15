@@ -14,7 +14,7 @@ string Extract(string &str)
 	auto it = str.cbegin();
 	regex_search(it, str.cend(), sm, regex("(2(5[0-5]{1}|[0-4]\\d{1})|[0-1]?\\d{1,2})(\\.(2(5[0-5]{1}|[0-4]\\d{1})|[0-1]?\\d{1,2})){3}"));
 	src = sm.prefix().str();
-
+		
 	result += sm.str();
 	result += " ";
 	//regex for src ipv4 match
@@ -40,7 +40,7 @@ unsigned long long Convert_IP(string &str)
 	unsigned long long result = 0ll;
 	string temp = "";
 	int i = 0, length = str.size(), t = 0;
-	int first_in = 1, first_out = 1;//loop flag
+	int first_in = 1, first_out = 1, is_src = 1;//loop flag
 	for (i = 0; i < length; i++)
 	{
 		if (str[i] == 'l')break;
@@ -50,6 +50,11 @@ unsigned long long Convert_IP(string &str)
 			result += t;
 			t = 0;
 			first_out = 1;
+			if(is_src)
+			{ 
+				result = result << 8;
+				is_src = 0;
+			}
 			continue;
 		}
 		if (str[i] == ' ')break;

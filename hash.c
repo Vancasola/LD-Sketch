@@ -41,14 +41,14 @@ void mangle(const unsigned char* key, unsigned char* ret_key,
 		ret_key[i] = (new_key >> (i * 8)) & 0xff;
 	}
 }
-
+/*
 uint64_t seed = 0;
 uint64_t GenHashSeed(int index) {
-	/*
-	if (index == 0) {
-		srand(0);
-	}
-	*/
+ 
+	//if (index == 0) {
+	//	srand(0);
+	//}
+ 
 	if (seed == 0) {
 		seed = rand();
 	}
@@ -56,7 +56,7 @@ uint64_t GenHashSeed(int index) {
 	mangle((const unsigned char*)&y, (unsigned char*)&x, 8);
 	return AwareHash((uint8_t*)&y, 8, 388650253, 388650319, 1176845762);
 }
-
+*/
 int is_prime(int num) {
 	int i;
 	for (i = 2; i < num; i++) {

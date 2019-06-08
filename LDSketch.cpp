@@ -11,7 +11,7 @@
 #include "util.h"
 #include "hash.h"
 #include "LDSketch.hpp"
-
+#define HEAVY_CHANGER 50000
  /*
   * calloc with error message
   */
@@ -101,7 +101,7 @@ LDSketch_t* LDSketch_init(int w, int h, int l, int lgn, long long thresh_abs, un
 	LDSketch->h = h;
 	LDSketch->w = w;
 	LDSketch->l = l;
-	// LDSketch->size = h * w;
+	//LDSketch->size = h * w;
 	LDSketch->lgn = lgn;
 	LDSketch->tbl_id = tbl_id;
 	LDSketch->thresh_abs = thresh_abs;
@@ -176,7 +176,8 @@ void LDSketch_update(LDSketch_t* sk, unsigned char* key, long long val) {
 	for (j = 0; j < sk->h; ++j) {
 		k = LDSketch_find(sk, key, 0, sk->lgn - 1, j);
 		//tbl->T[j*tbl->w+k] += val;
-		dyn_tbl_update(sk->tbl[j*sk->w + k], key, val);
+		int size = LDSketch_Size(sk);
+		dyn_tbl_update(size, sk->tbl[j*sk->w + k], key, val);
 	}
 	//tbl->total += val;
 }
@@ -309,6 +310,100 @@ void LDSketch_get_heavy_keys(LDSketch_t* sk, long long thresh,
 	*num_key = n;
 }
 
+/*
+def LDSketch_get_heavy_changers(self, lds1, lds2, thresh):
+		num_key=0
+		keys = list()
+		for i in range(lds1.w*lds1.h):
+			kvitems1 = lds1.tbl[i].array.items()
+			for p in kvitems1:
+				key,value = p
+				D = max(abs((lds1.LDSketch_up_estimate(key)-lds2.LDSketch_low_estimate(key))),abs((lds2.LDSketch_up_estimate(key)-lds1.LDSketch_low_estimate(key))))
+				if D>self.thresh_abs:
+					keys.append(key)
+					num_key+=1
+		i=0
+		j=0
+		for i in range(lds2.w*lds2.h):
+			kvitems2 = lds2.tbl[i].array.items()
+			for p in kvitems2:
+				key,value = p
+				if key not in keys:
+					D = max(abs((lds1.LDSketch_up_estimate(key)-lds2.LDSketch_low_estimate(key))),abs((lds2.LDSketch_up_estimate(key)-lds1.LDSketch_low_estimate(key))))
+					if D>self.thresh_abs:
+						keys.append(key)
+						num_key+=1
+		return keys,num_key
+*/
+void LDSketch_get_heavy_changers(LDSketch_t* sk1, LDSketch_t* sk2, long long thresh,
+	unsigned char* keys, long long* vals, int* num_key)
+{
+	int max_array_len = 0;
+	for (int i = 0; i < sk1->w*sk1->h; ++i) {
+		if (sk1->tbl[i]->max_value >= thresh) {
+			int len = dyn_tbl_length(sk1->tbl[i]);
+			if (len > max_array_len) {
+				max_array_len = len;
+			}
+		}
+		if (sk2->tbl[i]->max_value >= thresh) {
+			int len = dyn_tbl_length(sk2->tbl[i]);
+			if (len > max_array_len) {
+				max_array_len = len;
+			}
+		}
+	}
+
+	unsigned char* tmp_keys = (unsigned char*)safe_calloc(max_array_len, sk1->lgn / 8, std::string("tmp heavy keys").c_str());
+	int tmp_n = 0, n = 0;
+
+	//std::unordered_map<dyn_tbl_key_t, long long, dyn_tbl_key_hash, dyn_tbl_key_eq>  res1, res2;
+    unsigned char *keys1 = new unsigned char [HEAVY_CHANGER];
+    unsigned char *keys2 = new unsigned char [HEAVY_CHANGER];
+    long long* vals1 = new long long[HEAVY_CHANGER];
+    long long *vals2 = new long long[HEAVY_CHANGER];
+    int num_key1 = 0, num_key2 = 0;
+
+    LDSketch_get_heavy_keys(sk1, thresh, keys1, vals1, &num_key1);
+    LDSketch_get_heavy_keys(sk2, thresh, keys2, vals2, &num_key2);
+
+    myset reset;
+    //for (auto it = res1.begin(); it != res1.end(); it++) {
+    for(int i=0; i<num_key1;i++){
+    	dyn_tbl_key_t t;
+    	memcpy(t.key,keys1+i*sk1->lgn/8,sk1->lgn/8);
+        reset.insert(t);
+    }
+    for(int i=0; i<num_key2;i++){
+    	dyn_tbl_key_t t;
+    	memcpy(t.key,keys2+i*sk2->lgn/8,sk2->lgn/8);
+        reset.insert(t);
+    }
+    uint64_t old_low, old_up;
+    uint64_t new_low, new_up;
+    uint64_t diff1, diff2;
+    uint64_t change;
+    int i=0;
+    for (auto it = reset.begin(); it != reset.end(); it++) {
+        old_low = LDSketch_low_estimate(sk1,(unsigned char*)(*it).key);
+        old_up = LDSketch_up_estimate(sk1,(unsigned char*)(*it).key);
+        new_low = LDSketch_low_estimate(sk2,(unsigned char*)(*it).key);
+        new_up = LDSketch_up_estimate(sk2,(unsigned char*)(*it).key);
+        diff1 = new_up > old_low ? new_up - old_low : old_low - new_up;
+        diff2 = new_low > old_up ? new_low - old_up : old_up - new_low;
+        change = diff1 > diff2 ? diff1 : diff2;
+        if (change > thresh) {
+            memcpy(keys+i*sk1->lgn/8, it->key, sk1->lgn/8);
+            vals[i] = change;
+            i++;
+        }
+    }
+    *num_key = i;
+    delete keys1, keys2, vals1, vals2;
+}
+
+
+
 long long LDSketch_low_estimate(LDSketch_t* sk, unsigned char* key) {
 	long long ret = 0;
 	for (int i = 0; i < sk->h; ++i) {
@@ -329,6 +424,62 @@ long long LDSketch_up_estimate(LDSketch_t* sk, unsigned char* key) {
 	}
 	return ret;
 }
+
+unsigned int LDSketch_Size(LDSketch_t * sk)
+{
+  // output the size (in bytes) used by the data structure
+  int admin = sizeof(LDSketch_t);
+  int hash = 3*sizeof(unsigned int)*sk->h;
+  int pointer = sk->w*sk->h * sizeof(int32_t*);
+  int buckets = sk->w*sk->h * sizeof(dyn_tbl_t);
+  int len = 0;
+  for (int i = 0; i < sk->h*sk->w; ++i) {
+		len += dyn_tbl_length(sk->tbl[i]);
+		//printf("%d ",dyn_tbl_length(sk->tbl[i]));
+		//if(i%500==0)printf("\n");
+	}
+
+  //printf("dyn_tbl_t: %d\n hash: %d\n pointer:%d\n keyval:%d\n", sizeof(dyn_tbl_t),3*sizeof(unsigned int),sizeof(int32_t*),sk->lgn/8+sizeof(uint32_t));
+  int key_val = len*(sk->lgn/8+sizeof(uint32_t));
+
+  //int expense = sk->w*sk->h*(3*sizeof(long long)+3*sizeof(unsigned int)+sizeof(sk->tbl[0][0].array));
+  //printf("admin: %dB\nhash: %dB\npointer: %dB\nbucket: %dB\nkey_val: %dB\n len:%d\n", admin, hash, pointer, buckets, key_val,len);
+  //printf("array1:%d array2:%d array3:%d",sizeof(sk->tbl[0][0].array),sizeof(sk->tbl[0][1].array),sizeof(sk->tbl[0][2].array));
+  return admin + hash + pointer + buckets + key_val;
+}
+
+unsigned int LDSketch_Total_Length(LDSketch_t* sk)
+{
+	unsigned int len = 0;
+	for (int i = 0; i < sk->h*sk->w; ++i) {
+		len += dyn_tbl_length(sk->tbl[i]);
+		//printf("%d ",dyn_tbl_length(sk->tbl[i]));
+		//if(i%500==0)printf("\n");
+	}
+	return len;
+}
+unsigned int LDSketch_Print_Size(LDSketch_t * sk)
+{
+	int admin = sizeof(LDSketch_t);
+  int hash = 3*sizeof(unsigned int)*sk->h;
+  int pointer = sk->w*sk->h * sizeof(int32_t*);
+  int buckets = sk->w*sk->h * sizeof(dyn_tbl_t);
+  int len = 0;
+  for (int i = 0; i < sk->h*sk->w; ++i) {
+		len += dyn_tbl_length(sk->tbl[i]);
+		//printf("%d ",dyn_tbl_length(sk->tbl[i]));
+		//if(i%500==0)printf("\n");
+	}
+
+  //printf("dyn_tbl_t: %d\n hash: %d\n pointer:%d\n keyval:%d\n", sizeof(dyn_tbl_t),3*sizeof(unsigned int),sizeof(int32_t*),sk->lgn/8+sizeof(uint32_t));
+  int key_val = len*(sk->lgn/8+sizeof(uint32_t));
+
+  //int expense = sk->w*sk->h*(3*sizeof(long long)+3*sizeof(unsigned int)+sizeof(sk->tbl[0][0].array));
+  printf("admin: %dB\nhash: %dB\npointer: %dB\nbucket: %dB\nkey_val: %dB\n len:%d\n", admin, hash, pointer, buckets, key_val,len);
+  //printf("array1:%d array2:%d array3:%d",sizeof(sk->tbl[0][0].array),sizeof(sk->tbl[0][1].array),sizeof(sk->tbl[0][2].array));
+  return admin + hash + pointer + buckets + key_val;
+}
+
 
 /*
 unsigned int LDSketch_find_cand(LDSketch_t* sk, LDSketch_t* sk_old, double thresh, unsigned char** cand_list, unsigned int MAX_CAND) {

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include "util.h"
 #include "hash.h"
+#define MUSAGE 999999
 //#include "Hash.hpp"
 
 /**********************************************************
@@ -42,7 +43,7 @@ typedef struct {
 	}
 } dyn_tbl_key_eq;
 
-
+typedef std::unordered_set<dyn_tbl_key_t, dyn_tbl_key_hash, dyn_tbl_key_eq> myset;
 // typedef std::unordered_set<dyn_tbl_key_t, dyn_tbl_key_hash, dyn_tbl_key_eq> myset;
 
 /**********************************************************
@@ -141,7 +142,7 @@ int dyn_tbl_length(dyn_tbl_t* dyn_tbl);
   * @param key key of the data item
   * @param val value of the data item
   */
-void dyn_tbl_update(dyn_tbl_t* dyn_tbl, unsigned char* key, int val);
+void dyn_tbl_update(int size, dyn_tbl_t* dyn_tbl, unsigned char* key, int val);
 
 /**
  * copy bucket

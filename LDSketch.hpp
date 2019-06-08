@@ -63,6 +63,8 @@ void LDSketch_write_plaintext(LDSketch_t* sk, const char* output);
 // @param vals results of detected key sizes 
 // @param num_key number of detected keys
 void LDSketch_get_heavy_keys(LDSketch_t* sk, long long thresh, unsigned char* keys, long long* vals, int* num_key);
+void LDSketch_get_heavy_changers(LDSketch_t* sk1, LDSketch_t* sk2, long long thresh,
+	unsigned char* keys, long long* vals, int* num_key);
 
 /// estimate the lower sum of a key
 // @param sk target sketch 
@@ -105,3 +107,9 @@ void LDSketch_reset(LDSketch_t* sk);
 
 unsigned int LDSketch_find(LDSketch_t* tbl, const unsigned char* key, int start_bit,
 	int end_bit, int row_no);
+
+unsigned int LDSketch_Total_Length(LDSketch_t* sk);
+
+unsigned int LDSketch_Size(LDSketch_t * sk);
+
+unsigned int LDSketch_Print_Size(LDSketch_t * sk);

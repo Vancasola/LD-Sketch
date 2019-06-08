@@ -95,21 +95,24 @@ void dyn_tbl_reset(dyn_tbl_t* dyn_tbl) {
 	dyn_tbl->max_value = 0;
 }
 
-void dyn_tbl_update(dyn_tbl_t* dyn_tbl, unsigned char* key_str, int val) {
+void dyn_tbl_update(int size, dyn_tbl_t* dyn_tbl, unsigned char* key_str, int val) {
 
 	dyn_tbl_key_t key;
 	memcpy(key.key, key_str, dyn_tbl->lgn / 8);
 	dyn_tbl->total += val;
 
 	if (dyn_tbl->array.find(key) != dyn_tbl->array.end()) {
+		if(size>=MUSAGE*1024)goto flag;
 		dyn_tbl->array[key] += val;
 	}
 	else {
 		unsigned int frac = dyn_tbl->total / dyn_tbl->T;
 		if (dyn_tbl->array.size() < dyn_tbl->max_len) {
+			if(size>=MUSAGE*1024)goto flag;
 			dyn_tbl->array[key] = val;
 		}
 		else if (dyn_tbl->max_len < (frac + 1)*(frac + 2) - 1) {
+			if(size>=MUSAGE*1024)goto flag;
 			dyn_tbl->max_len = (frac + 1)*(frac + 2) - 1;
 			dyn_tbl->array[key] = val;
 		}
@@ -135,11 +138,12 @@ void dyn_tbl_update(dyn_tbl_t* dyn_tbl, unsigned char* key_str, int val) {
 				if (dyn_tbl->array.size() >= dyn_tbl->max_len) {
 					fprintf(stderr, "Warning: maj tbl update error\n");
 				}
+				if(size>=MUSAGE*1024)goto flag;
 				dyn_tbl->array[key] = val - min;
 			}
 		}
 	}
-	long long value = 0;
+	flag:long long value = 0;
 	if (dyn_tbl->array.find(key) != dyn_tbl->array.end()) {
 		value = dyn_tbl->array[key] + dyn_tbl->decrement;
 	}
